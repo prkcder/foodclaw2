@@ -31,6 +31,8 @@ npm install
 npm run dev
 ```
 
+If `npm run dev` fails with `Cannot find package 'express'`, run `npm install` at the repo root (not inside `apps/api`) so npm workspace dependencies are linked correctly.
+
 ## Scripts
 - `npm run dev` — run API + worker in watch mode
 - `npm run build` — build all packages/apps
