@@ -28,6 +28,9 @@ Order food so it arrives around the user's home-arrival time, while respecting d
 ```bash
 cd foodclaw2
 npm install
+npm run db:generate
+# optional if you have local postgres running and want real tables:
+# npm run db:migrate
 npm run dev
 ```
 

@@ -9,6 +9,8 @@
   "scripts": {
     "dev": "npm run dev -w apps/api & npm run dev -w apps/worker & wait",
     "build": "npm run build -ws",
-    "lint": "echo 'lint placeholder'"
+    "lint": "echo 'lint placeholder'",
+    "db:generate": "npm run prisma:generate -w packages/db",
+    "db:migrate": "npm run prisma:migrate -w packages/db"
   }
 }
