@@ -1,0 +1,10 @@
+{
+  "name": "@foodclaw2/worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node src/worker.js",
+    "build": "echo 'build worker placeholder'"
+  }
+}

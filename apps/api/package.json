@@ -1,0 +1,13 @@
+{
+  "name": "@foodclaw2/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node src/server.js",
+    "build": "echo 'build api placeholder'"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}

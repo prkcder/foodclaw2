@@ -1,0 +1,208 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AccountProviderType {
+  CALENDAR_GOOGLE
+  DELIVERY_MOCK
+  DELIVERY_UBER_EATS
+  DELIVERY_DOORDASH
+}
+
+enum AccountStatus {
+  ACTIVE
+  REVOKED
+  ERROR
+}
+
+enum MealIntentStatus {
+  PLANNING
+  NEEDS_CONFIRMATION
+  CONFIRMED
+  ORDERED
+  CANCELED
+  FAILED
+}
+
+enum OrderStatus {
+  CREATED
+  PLACED
+  PREPARING
+  PICKED_UP
+  DELIVERED
+  CANCELED
+  FAILED
+}
+
+enum NotificationChannel {
+  PUSH
+  SMS
+  WHATSAPP
+  TELEGRAM
+}
+
+enum OutboxStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+enum AgentRunType {
+  SCHEDULE_SCAN
+  PLANNING
+  FOLLOW_UP
+}
+
+model User {
+  id          String   @id @default(uuid())
+  email       String   @unique
+  name        String?
+  timezone    String   @default("America/Los_Angeles")
+  homeAddress String?
+  homeLat     Float?
+  homeLng     Float?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  dietaryProfile   DietaryProfile?
+  connectedAccounts ConnectedAccount[]
+  scheduleEvents   ScheduleEvent[]
+  mealIntents      MealIntent[]
+  orders           Order[]
+  outbox           NotificationOutbox[]
+  agentRuns        AgentRun[]
+}
+
+model DietaryProfile {
+  id                 String   @id @default(uuid())
+  userId             String   @unique
+  allergens          String[]
+  restrictions       String[]
+  dislikedIngredients String[]
+  likedCuisines      String[]
+  maxMealPriceCents  Int?
+  updatedAt          DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model ConnectedAccount {
+  id                   String              @id @default(uuid())
+  userId               String
+  providerType         AccountProviderType
+  accessTokenEncrypted String?
+  refreshTokenEncrypted String?
+  scopes               String[]
+  status               AccountStatus       @default(ACTIVE)
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model ScheduleEvent {
+  id                     String   @id @default(uuid())
+  userId                 String
+  externalEventId        String?
+  title                  String
+  location               String?
+  startAt                DateTime
+  endAt                  DateTime
+  commuteMinutesEstimate Int?
+  ingestedAt             DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model MealIntent {
+  id                String         @id @default(uuid())
+  userId            String
+  targetArrivalAt   DateTime
+  decisionDeadlineAt DateTime
+  status            MealIntentStatus @default(PLANNING)
+  reason            String?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  user       User            @relation(fields: [userId], references: [id])
+  candidates MealCandidate[]
+  orders     Order[]
+  agentRuns  AgentRun[]
+}
+
+model MealCandidate {
+  id             String   @id @default(uuid())
+  mealIntentId   String
+  providerType   AccountProviderType
+  externalStoreId String?
+  externalItemId String?
+  name           String
+  priceCents     Int
+  etaMinutes     Int
+  ingredients    String[]
+  constraintFlags Json
+  rankScore      Float?
+
+  mealIntent MealIntent @relation(fields: [mealIntentId], references: [id])
+}
+
+model Order {
+  id             String      @id @default(uuid())
+  userId         String
+  mealIntentId   String?
+  providerType   AccountProviderType
+  externalOrderId String?
+  status         OrderStatus @default(CREATED)
+  subtotalCents  Int?
+  feesCents      Int?
+  tipCents       Int?
+  totalCents     Int?
+  placedAt       DateTime?
+  deliveredAt    DateTime?
+
+  user       User        @relation(fields: [userId], references: [id])
+  mealIntent MealIntent? @relation(fields: [mealIntentId], references: [id])
+  events     OrderEvent[]
+}
+
+model OrderEvent {
+  id        String   @id @default(uuid())
+  orderId   String
+  eventType String
+  payload   Json
+  createdAt DateTime @default(now())
+
+  order Order @relation(fields: [orderId], references: [id])
+}
+
+model NotificationOutbox {
+  id          String              @id @default(uuid())
+  userId      String
+  channel     NotificationChannel
+  templateKey String
+  payload     Json
+  status      OutboxStatus        @default(PENDING)
+  scheduledAt DateTime
+  sentAt      DateTime?
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model AgentRun {
+  id           String     @id @default(uuid())
+  userId       String
+  mealIntentId String?
+  runType      AgentRunType
+  input        Json
+  output       Json?
+  confidence   Float?
+  createdAt    DateTime   @default(now())
+
+  user       User       @relation(fields: [userId], references: [id])
+  mealIntent MealIntent? @relation(fields: [mealIntentId], references: [id])
+}

@@ -1,0 +1,14 @@
+{
+  "name": "foodclaw2",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w apps/api & npm run dev -w apps/worker & wait",
+    "build": "npm run build -ws",
+    "lint": "echo 'lint placeholder'"
+  }
+}
